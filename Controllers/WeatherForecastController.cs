@@ -1,5 +1,7 @@
+using API.Interfaces;
 using API.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -7,30 +9,89 @@ namespace API.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
 
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly CitizenInterface _CI;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(CitizenInterface CI)
         {
-            _logger = logger;
+            _CI = CI;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpGet(Name = "GetCitizens")]
+        public async Task<ActionResult<List<Citizen>>> Get()
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+
+            return Ok(await _CI.Get());
+
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Citizen>> Get(int id) {
+
+            var Citizen = _CI.Get(id);
+
+            if (Citizen == null)
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+
+                return NotFound();
+
+            }
+            else {
+
+                return Ok(await Citizen);
+
+            }
+
         }
 
-        
+        [HttpPost]
+        public async Task<ActionResult<List<Citizen>>> AddCitizen(Citizen citizen)
+        {
+            return Ok(await _CI.AddCitizen(citizen));
+
+        }
+
+        [HttpPut]
+        public async Task<ActionResult<List<Citizen>>> UpdateCitizen(Citizen request)
+        {
+
+            var Citizen = _CI.UpdateCitizen(request);
+
+            if (Citizen == null)
+            {
+
+                return BadRequest("Citizen Not Found");
+
+            }
+            else
+            {
+
+                return Ok(await Citizen);
+
+            }
+
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<List<Citizen>>> DeleteCitizen(int id) {
+
+            var Citizen = _CI.DeleteCitizen(id);
+
+            if (Citizen == null)
+            {
+
+                return BadRequest("Citizen Not Found");
+
+            }
+            else
+            {
+
+                return Ok(await Citizen);
+
+            }
+
+        }
+
+
     }
 }
